@@ -23,12 +23,7 @@ dev = [
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests requiring external services",
 ]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-console_output_style = "progress"
 addopts = "-v --strict-markers --tb=short"
 filterwarnings = [
     "ignore::DeprecationWarning",

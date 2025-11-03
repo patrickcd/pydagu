@@ -43,6 +43,15 @@ class ParallelConfig(BaseModel):
 class Step(BaseModel):
     """A step in the DAG"""
 
+    model_config = {
+        "json_schema_extra": {
+            "anyOf": [
+                { "required": [ "command" ] },
+                { "required": [ "script" ] }
+            ],
+        }
+    }
+
     name: str | None = Field(
         None, description="Step name", examples=["extract-data", "validate-environment"]
     )
@@ -114,3 +123,5 @@ class Step(BaseModel):
                 "Examples: command='echo hello', script='./run.sh'"
             )
         return self
+    
+

@@ -422,7 +422,6 @@ def test_step_with_precondition():
     assert step.preconditions[0].condition == "test -f /data/input.csv"
 
 
-# Integration Tests
 def test_dag_with_prebuilt_steps():
     """Build a DAG using pre-built steps from StepBuilder"""
     extract_step = (

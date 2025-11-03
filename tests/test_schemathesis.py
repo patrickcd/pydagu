@@ -12,7 +12,7 @@ from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
 from hypothesis_jsonschema import from_schema
 
-from pydagu.models import Dag
+from pydagu.models import Dag, Step
 
 
 # Test configuration
@@ -20,6 +20,12 @@ MAX_HYPOTHESIS_EXAMPLES = (
     3  # Keep low - hypothesis-jsonschema struggles with complex anyOf
 )
 OUTPUT_DIR = Path(__file__).parent / "generated_dags"
+
+
+def test_js():
+    from yaml import Dumper
+    # print(yaml.dump(Step.model_json_schema(), Dumper=Dumper))
+    assert True
 
 
 # Hypothesis strategies for generating valid cron expressions
