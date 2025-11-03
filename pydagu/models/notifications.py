@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 class MailOn(BaseModel):
     """Email notification configuration"""
 
-    failure: bool = False
-    success: bool = False
+    failure: bool | None = Field(None, description="Send email on failure")
+    success: bool | None = Field(None, description="Send email on success")
 
 
 class SMTPConfig(BaseModel):

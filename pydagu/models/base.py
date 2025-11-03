@@ -1,6 +1,5 @@
 """Base models and common types"""
 
-from typing import Any
 from pydantic import BaseModel, Field
 
 

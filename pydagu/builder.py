@@ -17,7 +17,7 @@ from .models.executor import (
 )
 from .models.handlers import HandlerConfig, HandlerOn
 from .models.notifications import MailOn, SMTPConfig
-from .models.infrastructure import ContainerConfig, SSHConfig, LogConfig
+from .models.infrastructure import ContainerConfig, SSHConfig
 
 
 class DagBuilder:
@@ -254,7 +254,7 @@ class DagBuilder:
         """Add a simple step with just a command or script path"""
         self._dag_config["steps"].append(command_or_script)
         return self
-    
+
     def add_step_models(self, *steps: tuple[Step]) -> "DagBuilder":
         """Add one or more pre-built Step object to the DAG"""
         for step in steps:

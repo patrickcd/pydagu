@@ -21,8 +21,8 @@ class RetryPolicy(BaseModel):
 class ContinueOn(BaseModel):
     """Configuration for continuing execution on specific conditions"""
 
-    failure: bool = False
-    skipped: bool = False
+    failure: bool | None = Field(None, description="Continue on failure")
+    skipped: bool | None = Field(None, description="Continue on skipped")
 
 
 class ParallelConfig(BaseModel):
@@ -94,14 +94,18 @@ class Step(BaseModel):
     preconditions: list[Precondition] | None = Field(
         None, description="Step-level preconditions"
     )
-    signalOnStop: Literal["SIGTERM", "SIGINT", "SIGKILL", "SIGHUP", "SIGQUIT"] | None = Field(
-        None, description="Signal to send on stop", examples=["SIGTERM", "SIGKILL", "SIGINT"]
+    signalOnStop: (
+        Literal["SIGTERM", "SIGINT", "SIGKILL", "SIGHUP", "SIGQUIT"] | None
+    ) = Field(
+        None,
+        description="Signal to send on stop",
+        examples=["SIGTERM", "SIGKILL", "SIGINT"],
     )
     parallel: ParallelConfig | None = Field(
         None, description="Parallel execution configuration"
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_step_has_action(self):
         """Validate that step has at least one of: command or script"""
         if not (self.command or self.script):

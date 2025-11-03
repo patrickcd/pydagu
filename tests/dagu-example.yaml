@@ -1,0 +1,90 @@
+name: production-etl
+description: Daily ETL pipeline for production data
+tags: [production, etl, critical]
+schedule: "0 2 * * *"
+
+maxActiveRuns: 1
+maxActiveSteps: 5
+timeoutSec: 7200
+histRetentionDays: 90
+
+params:
+  - DATE: "`date +%Y-%m-%d`"
+  - ENVIRONMENT: production
+
+env:
+  - DATA_DIR: /data/etl
+  - LOG_LEVEL: info
+  
+dotenv:
+  - /etc/dagu/production.env
+
+# Default container for all steps
+container:
+  image: python:3.11-slim
+  pullPolicy: missing
+  env:
+    - PYTHONUNBUFFERED=1
+  volumes:
+    - ./data:/data
+    - ./scripts:/scripts:ro
+
+preconditions:
+  - condition: "`date +%u`"
+    expected: "re:[1-5]"  # Weekdays only
+
+steps:
+  - name: validate-environment
+    command: ./scripts/validate.sh
+    
+  - command: python extract.py --date=${DATE}
+    depends: validate-environment
+    output: RAW_DATA_PATH
+    retryPolicy:
+      limit: 3
+      intervalSec: 300
+    
+  - name: transform-module
+    command: python transform.py
+    parallel:
+      items: [customers, orders, products]
+      maxConcurrent: 2
+    params: "TYPE=${ITEM} INPUT=${RAW_DATA_PATH}"
+
+  # Use different executor for this step   
+  - name: load-data
+    executor:
+      type: docker
+      config:
+        image: postgres:16
+        env:
+          - PGPASSWORD=${DB_PASSWORD}
+    command: psql -h ${DB_HOST} -U ${DB_USER} -f load.sql
+    
+  - command: python validate_results.py --date=${DATE}
+    depends: load-data
+    mailOnError: true
+
+handlerOn:
+  success:
+    command: |
+      echo "ETL completed successfully for ${DATE}"
+      ./scripts/notify-success.sh
+  failure:
+    executor:
+      type: mail
+      config:
+        to: data-team@example.com
+        subject: "ETL Failed - ${DATE}"
+        body: "Check logs at ${DAG_RUN_LOG_FILE}"
+        attachLogs: true
+  exit:
+    command: ./scripts/cleanup.sh ${DATE}
+
+mailOn:
+  failure: true
+  
+smtp:
+  host: smtp.company.com
+  port: "587"
+  username: etl-notifications@company.com

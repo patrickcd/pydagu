@@ -8,7 +8,6 @@ from pydagu.models import (
     Step,
     Precondition,
     RetryPolicy,
-    ContinueOn,
     ParallelConfig,
     ExecutorConfig,
     HTTPExecutorConfig,
@@ -283,74 +282,73 @@ def test_invalid_max_concurrent():
 
 def test_step_dependency_validation_valid():
     """Test that valid step dependencies are accepted"""
-    
+
     # Valid single dependency
     dag1 = Dag(
         name="valid-deps",
         steps=[
             {"name": "step1", "command": "echo 1"},
-            {"name": "step2", "command": "echo 2", "depends": "step1"}
-        ]
+            {"name": "step2", "command": "echo 2", "depends": "step1"},
+        ],
     )
     assert dag1 is not None
-    
+
     # Valid list dependency
     dag2 = Dag(
         name="valid-list-deps",
         steps=[
             {"name": "step1", "command": "echo 1"},
             {"name": "step2", "command": "echo 2"},
-            {"name": "step3", "command": "echo 3", "depends": ["step1", "step2"]}
-        ]
+            {"name": "step3", "command": "echo 3", "depends": ["step1", "step2"]},
+        ],
     )
     assert dag2 is not None
-    
+
     # Valid auto-numbered dependency
     dag3 = Dag(
         name="valid-auto-deps",
-        steps=[
-            "echo step1",
-            {"command": "echo step2", "depends": "1"}
-        ]
+        steps=["echo step1", {"command": "echo step2", "depends": "1"}],
     )
     assert dag3 is not None
 
 
 def test_step_dependency_validation_invalid():
     """Test that invalid step dependencies are rejected"""
-    
+
     # Invalid single dependency
     with pytest.raises(ValidationError, match="invalid dependency"):
         Dag(
             name="invalid-deps",
             steps=[
                 {"name": "step1", "command": "echo 1"},
-                {"name": "step2", "command": "echo 2", "depends": "nonexistent"}
-            ]
+                {"name": "step2", "command": "echo 2", "depends": "nonexistent"},
+            ],
         )
-    
+
     # Invalid dependency in list
     with pytest.raises(ValidationError, match="invalid dependency"):
         Dag(
             name="invalid-list-deps",
             steps=[
                 {"name": "step1", "command": "echo 1"},
-                {"name": "step2", "command": "echo 2", "depends": ["step1", "missing"]}
-            ]
+                {"name": "step2", "command": "echo 2", "depends": ["step1", "missing"]},
+            ],
         )
 
 
 def test_step_requires_command_or_script():
     """Test that a step must have either command or script"""
-    
+
     # Valid with command
     step1 = Step(command="echo hello")
     assert step1.command == "echo hello"
-    
+
     # Valid with script
     step2 = Step(script="./run.sh")
     assert step2.script == "./run.sh"
-    
+
     # Invalid - neither command nor script
-    with pytest.raises(ValidationError, match="must have at least one of: command or script"):
+    with pytest.raises(
+        ValidationError, match="must have at least one of: command or script"
+    ):
         Step(name="empty-step")

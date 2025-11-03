@@ -134,9 +134,7 @@ class Dag(BaseModel):
         # More specific patterns for better validation
         # Pattern that matches: *, single values, ranges, steps, lists, and combinations
         # Examples: *, 5, 1-5, */5, 1-10/2, 1,5,10, MON-FRI
-        field_pattern = re.compile(
-            r"^(\*|[\w-]+)(\/\d+)?$|^[\w-]+(,[\w-]+)+$"
-        )
+        field_pattern = re.compile(r"^(\*|[\w-]+)(\/\d+)?$|^[\w-]+(,[\w-]+)+$")
 
         # Validate each field with permissive pattern
         for i, field in enumerate(fields):
@@ -159,7 +157,7 @@ class Dag(BaseModel):
 
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_step_dependencies(self):
         """Validate that all step dependencies reference defined steps"""
         # Build a set of valid step names
@@ -174,18 +172,20 @@ class Dag(BaseModel):
                 else:
                     # If no name, dagu auto-generates based on position
                     step_names.add(str(i + 1))
-        
+
         # Check each step's dependencies
         for i, step in enumerate(self.steps):
             if isinstance(step, str):
                 continue
-            
+
             if not step.depends:
                 continue
-            
+
             # depends can be a string or list of strings
-            depends_list = [step.depends] if isinstance(step.depends, str) else step.depends
-            
+            depends_list = (
+                [step.depends] if isinstance(step.depends, str) else step.depends
+            )
+
             for dep in depends_list:
                 if dep not in step_names:
                     step_identifier = step.name if step.name else f"step at index {i}"
@@ -193,5 +193,5 @@ class Dag(BaseModel):
                         f"Step '{step_identifier}' has invalid dependency '{dep}'. "
                         f"Available steps: {', '.join(sorted(step_names))}"
                     )
-        
+
         return self
