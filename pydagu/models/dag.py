@@ -15,6 +15,7 @@ class Dag(BaseModel):
 
     name: str = Field(
         description="DAG name",
+        pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]*$",
         examples=["production-etl", "daily-backup", "data-pipeline"],
     )
     description: str | None = Field(
@@ -156,6 +157,25 @@ class Dag(BaseModel):
                 )
 
         return v
+
+    @model_validator(mode="after")
+    def validate_unique_step_names(self):
+        """Validate that all named steps have unique names"""
+        step_names = []
+        for i, step in enumerate(self.steps):
+            if isinstance(step, Step) and step.name:
+                step_names.append((step.name, i))
+        
+        # Check for duplicates
+        seen = set()
+        for name, index in step_names:
+            if name in seen:
+                raise ValueError(
+                    f"Step name must be unique. Duplicate name found: '{name}'"
+                )
+            seen.add(name)
+        
+        return self
 
     @model_validator(mode="after")
     def validate_step_dependencies(self):

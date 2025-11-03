@@ -10,23 +10,69 @@ import pytest
 import yaml
 from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
-from hypothesis_jsonschema import from_schema
 
-from pydagu.models import Dag, Step
+from pydagu.models import Dag
 
 
 # Test configuration
-MAX_HYPOTHESIS_EXAMPLES = (
-    3  # Keep low - hypothesis-jsonschema struggles with complex anyOf
-)
+MAX_HYPOTHESIS_EXAMPLES = 10
+
 OUTPUT_DIR = Path(__file__).parent / "generated_dags"
 
 
-def test_js():
-    from yaml import Dumper
-    # print(yaml.dump(Step.model_json_schema(), Dumper=Dumper))
-    assert True
+# Custom text strategy that avoids control characters and invalid unicode
+@st.composite
+def valid_text(draw, min_size=0, max_size=None):
+    """Generate valid printable text (ASCII + common unicode, no control chars)"""
+    # Use a restricted alphabet that avoids problematic unicode
+    alphabet = st.characters(
+        blacklist_categories=("Cc", "Cs"),  # Control and surrogate characters
+        blacklist_characters="\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f",
+    )
+    return draw(st.text(alphabet=alphabet, min_size=min_size, max_size=max_size or 20))
 
+
+@st.composite
+def dag_name_strategy(draw):
+    """Generate a valid DAG name (alphanumeric, dashes, dots, underscores)"""
+    # dagu requires: alphanumeric characters, dashes, dots, and underscores only
+    return draw(
+        st.from_regex(r"[a-zA-Z0-9][a-zA-Z0-9._-]{0,49}", fullmatch=True)
+    )
+
+
+@st.composite
+def step_strategy(draw):
+    """Generate a valid Step with either command or script"""
+    # Decide which action to use
+    use_command = draw(st.booleans())
+    
+    step_dict = {
+        "command" if use_command else "script": draw(valid_text(min_size=1))
+    }
+    
+    # Optional fields
+    if draw(st.booleans()):
+        step_dict["description"] = draw(valid_text(max_size=100))
+    if draw(st.booleans()):
+        step_dict["dir"] = draw(valid_text(max_size=50))
+    
+    return step_dict
+
+
+@st.composite
+def steps_with_unique_names(draw):
+    """Generate a list of steps with unique names"""
+    num_steps = draw(st.integers(min_value=1, max_value=5))
+    steps = []
+    
+    for i in range(num_steps):
+        step_dict = draw(step_strategy())
+        # Assign a unique name based on index
+        step_dict["name"] = f"step-{i}"
+        steps.append(step_dict)
+    
+    return steps
 
 # Hypothesis strategies for generating valid cron expressions
 @st.composite
@@ -94,15 +140,20 @@ def cron_field(draw, min_val, max_val, allow_names=None):
     if allow_names:
         choices.append(st.sampled_from(allow_names))
 
-        # Named range
+        # Named range - ensure proper ordering by using indices
         @st.composite
         def named_range(draw):
-            names = draw(
+            indices = draw(
                 st.lists(
-                    st.sampled_from(allow_names), min_size=2, max_size=2, unique=True
+                    st.integers(min_value=0, max_value=len(allow_names) - 1),
+                    min_size=2,
+                    max_size=2,
+                    unique=True,
                 )
             )
-            return f"{names[0]}-{names[1]}"
+            # Sort to ensure start <= end
+            start_idx, end_idx = sorted(indices)
+            return f"{allow_names[start_idx]}-{allow_names[end_idx]}"
 
         choices.append(named_range())
 
@@ -166,18 +217,21 @@ def setup_output_dir():
 def yaml_file():
     """Fixture that provides a file path and cleans it up after the test"""
     files_to_cleanup = []
+    counter = {"value": 0}  # Mutable counter to track file indices
 
-    def _create_file(dag: Dag, index: int, suffix: str = "") -> Path:
+    def _create_file(dag: Dag, suffix: str = "") -> Path:
         """Save a DAG to a YAML file for reference
 
         Args:
             dag: The DAG model to save
-            index: Test iteration index
             suffix: Optional suffix for the filename (e.g., "failed")
 
         Returns:
             Path to the saved file
         """
+        index = counter["value"]
+        counter["value"] += 1
+        
         filename = f"dag_{index:03d}{suffix}.yaml"
         filepath = OUTPUT_DIR / filename
 
@@ -231,7 +285,8 @@ def validate_dag_with_dagu(filepath: Path) -> tuple[bool, str]:
 
 @pytest.mark.slow
 @given(
-    dag_data=from_schema(Dag.model_json_schema()),
+    dag_name=dag_name_strategy(),
+    steps_data=steps_with_unique_names(),
     cron=st.one_of(st.none(), cron_expression()),
 )
 @settings(
@@ -243,41 +298,35 @@ def validate_dag_with_dagu(filepath: Path) -> tuple[bool, str]:
         HealthCheck.function_scoped_fixture,
     ],
 )
-def test_hypothesis_based_dag_generation(dag_data, cron, yaml_file):
+def test_dag_generation(dag_name, steps_data, cron, yaml_file):
     """Test DAG generation using Hypothesis strategies
 
-    This test uses hypothesis-jsonschema to generate random DAGs based on
-    the Pydantic model's JSON schema, then validates them using dagu CLI.
+    This test uses custom Hypothesis strategies to generate valid DAGs with:
+    - Valid character sets (no control characters or invalid unicode)
+    - Steps that always have either command or script
     """
-    # Replace schedule with properly generated cron expression if present
-    if "schedule" in dag_data and dag_data["schedule"]:
+    # Build the DAG data from our controlled strategies
+    dag_data = {
+        "name": dag_name,
+        "steps": steps_data,
+    }
+    
+    # Add cron schedule if provided
+    if cron is not None:
         dag_data["schedule"] = cron
 
     # Convert generated JSON data to Dag model
-    try:
-        dag = Dag(**dag_data)
-    except Exception as e:
-        # Skip invalid data that doesn't pass Pydantic validation
-        # This includes steps without command/script/call
-        pytest.skip(f"Generated data failed Pydantic validation: {e}")
-
-    # Generate a unique index for this test run
-    # Use hash of dag name to create a pseudo-unique index
-    index = abs(hash(dag.name)) % 1000
+    dag = Dag(**dag_data)
 
     # Save the generated DAG
-    saved_path = yaml_file(dag, index, suffix="_hypothesis")
-    print(f"\nHypothesis-generated DAG saved to: {saved_path}")
-    print(f"  Steps: {len(dag.steps)}")
-    if dag.schedule:
-        print(f"  Schedule: {dag.schedule}")
+    saved_path = yaml_file(dag, suffix="_hypothesis")
 
     # Validate using dagu CLI
     is_valid, message = validate_dag_with_dagu(saved_path)
 
     if not is_valid:
         # Save a copy with "failed" suffix for easier debugging
-        failed_path = yaml_file(dag, index, suffix="_hypothesis_failed")
+        failed_path = yaml_file(dag, suffix="_hypothesis_failed")
 
         # Print the DAG for debugging
         dag_yaml = yaml.dump(
@@ -290,5 +339,3 @@ def test_hypothesis_based_dag_generation(dag_data, cron, yaml_file):
             f"Message: {message}\n"
             f"DAG saved to: {failed_path}"
         )
-
-    print("✓ Hypothesis-generated DAG validated successfully")
