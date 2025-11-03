@@ -45,10 +45,7 @@ class Step(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "anyOf": [
-                { "required": [ "command" ] },
-                { "required": [ "script" ] }
-            ],
+            "anyOf": [{"required": ["command"]}, {"required": ["script"]}],
         }
     }
 
@@ -123,5 +120,3 @@ class Step(BaseModel):
                 "Examples: command='echo hello', script='./run.sh'"
             )
         return self
-    
-

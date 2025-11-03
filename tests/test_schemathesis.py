@@ -36,9 +36,7 @@ def valid_text(draw, min_size=0, max_size=None):
 def dag_name_strategy(draw):
     """Generate a valid DAG name (alphanumeric, dashes, dots, underscores)"""
     # dagu requires: alphanumeric characters, dashes, dots, and underscores only
-    return draw(
-        st.from_regex(r"[a-zA-Z0-9][a-zA-Z0-9._-]{0,49}", fullmatch=True)
-    )
+    return draw(st.from_regex(r"[a-zA-Z0-9][a-zA-Z0-9._-]{0,49}", fullmatch=True))
 
 
 @st.composite
@@ -46,17 +44,15 @@ def step_strategy(draw):
     """Generate a valid Step with either command or script"""
     # Decide which action to use
     use_command = draw(st.booleans())
-    
-    step_dict = {
-        "command" if use_command else "script": draw(valid_text(min_size=1))
-    }
-    
+
+    step_dict = {"command" if use_command else "script": draw(valid_text(min_size=1))}
+
     # Optional fields
     if draw(st.booleans()):
         step_dict["description"] = draw(valid_text(max_size=100))
     if draw(st.booleans()):
         step_dict["dir"] = draw(valid_text(max_size=50))
-    
+
     return step_dict
 
 
@@ -65,14 +61,15 @@ def steps_with_unique_names(draw):
     """Generate a list of steps with unique names"""
     num_steps = draw(st.integers(min_value=1, max_value=5))
     steps = []
-    
+
     for i in range(num_steps):
         step_dict = draw(step_strategy())
         # Assign a unique name based on index
         step_dict["name"] = f"step-{i}"
         steps.append(step_dict)
-    
+
     return steps
+
 
 # Hypothesis strategies for generating valid cron expressions
 @st.composite
@@ -231,7 +228,7 @@ def yaml_file():
         """
         index = counter["value"]
         counter["value"] += 1
-        
+
         filename = f"dag_{index:03d}{suffix}.yaml"
         filepath = OUTPUT_DIR / filename
 
@@ -310,7 +307,7 @@ def test_dag_generation(dag_name, steps_data, cron, yaml_file):
         "name": dag_name,
         "steps": steps_data,
     }
-    
+
     # Add cron schedule if provided
     if cron is not None:
         dag_data["schedule"] = cron

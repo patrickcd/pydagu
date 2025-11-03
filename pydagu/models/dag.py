@@ -165,7 +165,7 @@ class Dag(BaseModel):
         for i, step in enumerate(self.steps):
             if isinstance(step, Step) and step.name:
                 step_names.append((step.name, i))
-        
+
         # Check for duplicates
         seen = set()
         for name, index in step_names:
@@ -174,7 +174,7 @@ class Dag(BaseModel):
                     f"Step name must be unique. Duplicate name found: '{name}'"
                 )
             seen.add(name)
-        
+
         return self
 
     @model_validator(mode="after")
