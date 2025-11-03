@@ -1,16 +1,18 @@
 """Main DAG model"""
 
 import re
-from pydantic import BaseModel, Field, field_validator, model_validator
 
-from pydagu.models.base import Precondition
-from pydagu.models.step import Step
-from pydagu.models.handlers import HandlerOn
-from pydagu.models.notifications import MailOn, SMTPConfig
-from pydagu.models.infrastructure import ContainerConfig, SSHConfig
+from pydantic import Field, field_validator, model_validator
+
+from .base import Precondition
+from .types import DaguBase
+from .step import Step
+from .handlers import HandlerOn
+from .notifications import MailOn, SMTPConfig
+from .infrastructure import ContainerConfig, SSHConfig
 
 
-class Dag(BaseModel):
+class Dag(DaguBase):
     """Dagu DAG (Directed Acyclic Graph) definition"""
 
     name: str = Field(

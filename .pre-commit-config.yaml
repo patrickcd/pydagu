@@ -22,7 +22,10 @@ repos:
     -   id: bandit
         args: [-ll, pydagu]
 
--   repo: https://github.com/seddonym/import-linter
-    rev: v2.5.2
+-   repo: local
     hooks:
-    -   id: import-linter
+    -   id: lint_imports
+        name: "Lint imports"
+        entry: "lint-imports"  # Adapt with custom arguments, if need be.
+        language: system
+        pass_filenames: false

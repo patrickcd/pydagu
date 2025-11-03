@@ -10,3 +10,4 @@ wheels/
 .venv
 .hypothesis
 .python-version
+.coverage

@@ -3,5 +3,6 @@
         ".venv": true,
         ".vscode": true,
         "**/__pycache__": true
-    }
+    },
+    "editor.formatOnSave": true
 }
