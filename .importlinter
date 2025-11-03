@@ -1,0 +1,10 @@
+[importlinter]
+root_package = pydagu
+
+[importlinter:contract:one]
+name = Three-tier layers contract
+type = layers
+layers =
+    pydagu.http
+    pydagu.builder
+    pydagu.models

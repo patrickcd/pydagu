@@ -16,8 +16,10 @@ dev = [
     "ruff>=0.14.3",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    "pre-commit>=4.3.0",
     "hypothesis-jsonschema>=0.23.1",
     "schemathesis>=4.3.18",
+    "import-linter>=2.5.2",
 ]
 
 [tool.pytest.ini_options]

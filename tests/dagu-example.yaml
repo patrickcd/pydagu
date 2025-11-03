@@ -15,7 +15,7 @@ params:
 env:
   - DATA_DIR: /data/etl
   - LOG_LEVEL: info
-  
+
 dotenv:
   - /etc/dagu/production.env
 
@@ -36,14 +36,14 @@ preconditions:
 steps:
   - name: validate-environment
     command: ./scripts/validate.sh
-    
+
   - command: python extract.py --date=${DATE}
     depends: validate-environment
     output: RAW_DATA_PATH
     retryPolicy:
       limit: 3
       intervalSec: 300
-    
+
   - name: transform-module
     command: python transform.py
     parallel:
@@ -51,7 +51,7 @@ steps:
       maxConcurrent: 2
     params: "TYPE=${ITEM} INPUT=${RAW_DATA_PATH}"
 
-  # Use different executor for this step   
+  # Use different executor for this step
   - name: load-data
     executor:
       type: docker
@@ -60,7 +60,7 @@ steps:
         env:
           - PGPASSWORD=${DB_PASSWORD}
     command: psql -h ${DB_HOST} -U ${DB_USER} -f load.sql
-    
+
   - command: python validate_results.py --date=${DATE}
     depends: load-data
     mailOnError: true
@@ -83,7 +83,7 @@ handlerOn:
 
 mailOn:
   failure: true
-  
+
 smtp:
   host: smtp.company.com
   port: "587"

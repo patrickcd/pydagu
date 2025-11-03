@@ -463,7 +463,7 @@ class StepBuilder:
         """Set shell executor for this step"""
         self._step_config["executor"] = ExecutorConfig(
             type="shell",
-            config=ShellExecutorConfig(shell=shell, env=env),
+            config=ShellExecutorConfig(shell=shell, env=env),  # nosec: B604
         )
         return self
 

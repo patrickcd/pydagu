@@ -339,7 +339,7 @@ def test_step_with_shell_executor():
         .script("./process.sh")
         .shell_executor(
             shell="bash",
-            env={"PATH": "/usr/local/bin:$PATH", "DEBUG": "1"},
+            env={"PATH": "/usr/local/bin:$PATH", "DEBUG": "1"},  # nosec: B604
         )
         .build()
     )
