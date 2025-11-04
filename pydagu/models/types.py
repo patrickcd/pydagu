@@ -17,4 +17,8 @@ EmptyStrToNone: TypeAlias = Annotated[None, BeforeValidator(_empty_str_to_none)]
 
 
 class DaguBase(BaseModel):
+    """
+    Dagu expects that serialized models do not include None or unset fields.
+    """
+
     model_config = ConfigDict(exclude_none=True, exclude_unset=True)
