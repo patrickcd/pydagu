@@ -26,6 +26,17 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.14.3",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "pre-commit>=4.3.0",
+    "hypothesis-jsonschema>=0.23.1",
+    "schemathesis>=4.3.18",
+    "import-linter>=2.5.2",
+]
+
 [project.urls]
 Homepage = "https://github.com/yourusername/pydagu"
 Documentation = "https://github.com/yourusername/pydagu#readme"
@@ -55,6 +66,19 @@ filterwarnings = [
 
 [tool.uv.sources]
 pydagu = { workspace = true }
+
+# Keep dependency-groups for uv compatibility
+[dependency-groups]
+dev = [
+    "pydagu",
+    "ruff>=0.14.3",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "pre-commit>=4.3.0",
+    "hypothesis-jsonschema>=0.23.1",
+    "schemathesis>=4.3.18",
+    "import-linter>=2.5.2",
+]
 
 [build-system]
 requires = ["hatchling"]
