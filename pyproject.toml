@@ -14,7 +14,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -66,19 +65,6 @@ filterwarnings = [
 
 [tool.uv.sources]
 pydagu = { workspace = true }
-
-# Keep dependency-groups for uv compatibility
-[dependency-groups]
-dev = [
-    "pydagu",
-    "ruff>=0.14.3",
-    "pytest>=8.4.2",
-    "pytest-cov>=7.0.0",
-    "pre-commit>=4.3.0",
-    "hypothesis-jsonschema>=0.23.1",
-    "schemathesis>=4.3.18",
-    "import-linter>=2.5.2",
-]
 
 [build-system]
 requires = ["hatchling"]

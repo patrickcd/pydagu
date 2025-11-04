@@ -125,14 +125,6 @@ dag = (
 )
 ```
 
-## Webhook Integration
-
-Check out the [webhook integration examples](examples/) for production-ready patterns:
-
-- Flask/Django/FastAPI integration
-- Async webhook offloading from WSGI apps
-- Callback handling with result processing
-- Two-tier webhook system (generic + custom DAGs)
 
 ## Development
 
