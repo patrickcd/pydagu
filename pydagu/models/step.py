@@ -1,5 +1,6 @@
 """Step configuration models"""
 
+import re
 from typing import Any, Literal
 from pydantic import BaseModel, Field, model_validator
 
@@ -119,4 +120,23 @@ class Step(BaseModel):
                 "Step must have at least one of: command or script. "
                 "Examples: command='echo hello', script='./run.sh'"
             )
+        return self
+
+    @model_validator(mode="after")
+    def validate_http_executor_command(self):
+        """Validate that HTTP executor steps have command in 'METHOD URL' format"""
+        if self.executor and self.executor.type == "http" and self.command:
+            # HTTP executor requires command in format: "METHOD URL"
+            # Valid methods: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+            http_method_pattern = re.compile(
+                r"^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+https?://\S+",
+                re.IGNORECASE,
+            )
+            if not http_method_pattern.match(self.command):
+                raise ValueError(
+                    f"HTTP executor command must be in format 'METHOD URL'. "
+                    f"Got: '{self.command}'. "
+                    f"Examples: 'GET https://api.example.com/data', "
+                    f"'POST https://api.example.com/webhook'"
+                )
         return self

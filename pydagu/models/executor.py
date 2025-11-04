@@ -1,7 +1,8 @@
 """Executor configuration models"""
 
+import json
 from typing import Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class HTTPExecutorConfig(BaseModel):
@@ -31,6 +32,19 @@ class HTTPExecutorConfig(BaseModel):
     skipTLSVerify: bool | None = Field(
         None, description="Skip TLS certificate verification"
     )
+
+    @field_validator("body", mode="before")
+    @classmethod
+    def serialize_body_to_json(cls, v: Any) -> str | None:
+        """Convert dict body to JSON string automatically for Dagu compatibility"""
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return json.dumps(v)
+        if isinstance(v, str):
+            return v
+        # For other types, try to serialize them
+        return json.dumps(v)
 
 
 class SSHExecutorConfig(BaseModel):

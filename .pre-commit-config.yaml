@@ -26,6 +26,6 @@ repos:
     hooks:
     -   id: lint_imports
         name: "Lint imports"
-        entry: "lint-imports"  # Adapt with custom arguments, if need be.
+        entry: ".venv/bin/lint-imports"  # Adapt with custom arguments, if need be.
         language: system
         pass_filenames: false

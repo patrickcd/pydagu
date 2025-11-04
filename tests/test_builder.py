@@ -277,7 +277,7 @@ def test_step_with_http_executor():
     """Create a step with HTTP executor"""
     step = (
         StepBuilder("notify-webhook")
-        .command("curl -X POST https://api.example.com/notify")
+        .command("POST https://api.example.com/notify")
         .http_executor(
             headers={"Authorization": "Bearer ${API_TOKEN}"},
             body={"status": "completed", "date": "${DATE}"},
