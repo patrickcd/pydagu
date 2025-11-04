@@ -23,15 +23,19 @@ jobs:
 
     - name: Install Dagu
       run: |
-        # Install the latest Dagu release
-        curl -L https://github.com/dagu-org/dagu/releases/latest/download/dagu_linux_amd64.tar.gz | tar xz
-        sudo mv dagu /usr/local/bin/
-        dagu version
+        # Install Dagu using official installer script
+        curl -L https://raw.githubusercontent.com/dagu-org/dagu/main/scripts/installer.sh | bash
+
+        # Add to PATH for this session
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+        # Verify installation
+        $HOME/.local/bin/dagu version
 
     - name: Start Dagu server
       run: |
         # Start Dagu server in the background
-        dagu server --host 0.0.0.0 --port 8080 &
+        $HOME/.local/bin/dagu server --host 0.0.0.0 --port 8080 &
 
         # Wait for server to be ready
         echo "Waiting for Dagu server to start..."
