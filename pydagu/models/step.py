@@ -128,8 +128,9 @@ class Step(BaseModel):
         if self.executor and self.executor.type == "http" and self.command:
             # HTTP executor requires command in format: "METHOD URL"
             # Valid methods: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+            # URL can be a literal or a Dagu parameter like ${WEBHOOK_URL}
             http_method_pattern = re.compile(
-                r"^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+https?://\S+",
+                r"^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(https?://\S+|\$\{[A-Z_]+\})",
                 re.IGNORECASE,
             )
             if not http_method_pattern.match(self.command):
@@ -137,6 +138,7 @@ class Step(BaseModel):
                     f"HTTP executor command must be in format 'METHOD URL'. "
                     f"Got: '{self.command}'. "
                     f"Examples: 'GET https://api.example.com/data', "
-                    f"'POST https://api.example.com/webhook'"
+                    f"'POST https://api.example.com/webhook', "
+                    f"'POST ${{WEBHOOK_URL}}' (using Dagu parameter)"
                 )
         return self
