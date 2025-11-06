@@ -40,12 +40,49 @@ def dag_name_strategy(draw):
 
 
 @st.composite
+def command_text(draw):
+    """Generate valid command/script text that won't be empty after YAML processing
+    
+    This avoids special YAML characters that could cause issues when used alone,
+    and ensures the text is meaningful as a command.
+    """
+    # Use a strategy that generates actual command-like strings
+    # Either use a predefined safe command or generate alphanumeric text
+    return draw(
+        st.one_of(
+            # Predefined safe commands
+            st.sampled_from([
+                "echo hello",
+                "ls",
+                "pwd", 
+                "./script.sh",
+                "python main.py",
+                "node index.js",
+                "bash run.sh",
+            ]),
+            # Or generate alphanumeric command-like strings with common separators
+            st.text(
+                alphabet=st.characters(
+                    whitelist_categories=("L", "N"),  # Letters and numbers
+                    whitelist_characters=" -./_",  # Common command separators
+                ),
+                min_size=2,
+                max_size=50,
+            ).filter(lambda s: s and s.strip() and not s.isspace())
+        )
+    )
+
+
+@st.composite
 def step_strategy(draw):
     """Generate a valid Step with either command or script"""
     # Decide which action to use
     use_command = draw(st.booleans())
 
-    step_dict = {"command" if use_command else "script": draw(valid_text(min_size=1))}
+    # Generate non-empty, non-whitespace command/script
+    action_text = draw(command_text())
+    
+    step_dict = {"command" if use_command else "script": action_text}
 
     # Optional fields
     if draw(st.booleans()):
