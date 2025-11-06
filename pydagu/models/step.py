@@ -1,7 +1,7 @@
 """Step configuration models"""
 
 import re
-from typing import Any, Literal
+from typing import Any, Literal, Self
 from pydantic import BaseModel, Field, model_validator
 
 from pydagu.models.base import Precondition
@@ -113,7 +113,7 @@ class Step(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_step_has_action(self):
+    def validate_step_has_action(self: Self) -> Self:
         """Validate that step has at least one of: command or script"""
         if not (self.command or self.script):
             raise ValueError(
@@ -123,7 +123,7 @@ class Step(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def validate_http_executor_command(self):
+    def validate_http_executor_command(self: Self) -> Self:
         """Validate that HTTP executor steps have command in 'METHOD URL' format"""
         if self.executor and self.executor.type == "http" and self.command:
             # HTTP executor requires command in format: "METHOD URL"

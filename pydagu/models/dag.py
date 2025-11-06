@@ -1,18 +1,18 @@
 """Main DAG model"""
 
 import re
+from typing import Self
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator, BaseModel
 
 from .base import Precondition
-from .types import DaguBase
 from .step import Step
 from .handlers import HandlerOn
 from .notifications import MailOn, SMTPConfig
 from .infrastructure import ContainerConfig, SSHConfig
 
 
-class Dag(DaguBase):
+class Dag(BaseModel):
     """Dagu DAG (Directed Acyclic Graph) definition"""
 
     name: str = Field(
@@ -161,7 +161,7 @@ class Dag(DaguBase):
         return v
 
     @model_validator(mode="after")
-    def validate_unique_step_names(self):
+    def validate_unique_step_names(self: Self) -> Self:
         """Validate that all named steps have unique names"""
         step_names = []
         for i, step in enumerate(self.steps):
@@ -180,7 +180,7 @@ class Dag(DaguBase):
         return self
 
     @model_validator(mode="after")
-    def validate_step_dependencies(self):
+    def validate_step_dependencies(self: Self) -> Self:
         """Validate that all step dependencies reference defined steps"""
         # Build a set of valid step names
         step_names = set()

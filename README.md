@@ -24,7 +24,7 @@ pip install pydagu
 
 ## Prerequisites
 
-You need a running [Dagu server](https://github.com/dagu-org/dagu). Install Dagu:
+You need a running [Dagu server](https://github.com/dagu-org/dagu) to run the tests. Install Dagu:
 
 ```bash
 # macOS
@@ -124,7 +124,6 @@ dag = (
     .build()
 )
 ```
-
 
 ## Development
 
