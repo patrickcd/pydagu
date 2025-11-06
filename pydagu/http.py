@@ -44,6 +44,7 @@ class DaguHttpClient:
             return DagResponseMessage.model_validate(response.json())
 
         response.raise_for_status()
+        return None
 
     def delete_dag(self) -> None:
         """Delete a DAG from the Dagu HTTP API by its name."""

@@ -2,20 +2,21 @@ import uuid
 import time
 import json
 import threading
-from typing import Generator
+from collections.abc import Generator
+from typing import Any
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import pytest
 
 from pydagu.http import DaguHttpClient
 from pydagu.builder import DagBuilder, StepBuilder
-from pydagu.models import StartDagRun, DagRunId, DagRunResult
+from pydagu.models import StartDagRun, DagRunId, DagRunResult, Step
 
 
 class WebhookHandler(BaseHTTPRequestHandler):
     """Simple HTTP request handler for testing webhooks"""
 
-    received_requests = []
+    received_requests: list[dict[str, Any]] = []
 
     def do_GET(self):
         """Handle GET requests"""
@@ -335,13 +336,17 @@ def test_chained_http_requests_with_retries(
     assert len(retrieved_dag.steps) == 2
 
     # Verify step configurations
+    assert isinstance(retrieved_dag.steps[0], Step)
     assert retrieved_dag.steps[0].name == "fetch-user-data"
     assert retrieved_dag.steps[0].output == "USER_DATA"
+    assert retrieved_dag.steps[0].retryPolicy is not None
     assert retrieved_dag.steps[0].retryPolicy.limit == 3
     assert retrieved_dag.steps[0].retryPolicy.intervalSec == 5
 
+    assert isinstance(retrieved_dag.steps[1], Step)
     assert retrieved_dag.steps[1].name == "post-to-analytics"
     assert retrieved_dag.steps[1].depends == "fetch-user-data"
+    assert retrieved_dag.steps[1].retryPolicy is not None
     assert retrieved_dag.steps[1].retryPolicy.limit == 2
     assert retrieved_dag.steps[1].retryPolicy.intervalSec == 3
 
@@ -497,15 +502,20 @@ def test_application_webhook_with_callback(
 
     # Verify webhook step configuration
     webhook_step = retrieved_dag.steps[0]
+    assert isinstance(webhook_step, Step)
     assert webhook_step.name == "notify-slack"
+    assert webhook_step.executor is not None
     assert webhook_step.executor.type == "http"
     assert webhook_step.output == "SLACK_RESPONSE"
+    assert webhook_step.retryPolicy is not None
     assert webhook_step.retryPolicy.limit == 3
 
     # Verify callback step configuration
     callback_step_retrieved = retrieved_dag.steps[1]
+    assert isinstance(callback_step_retrieved, Step)
     assert callback_step_retrieved.name == "post-callback"
     assert callback_step_retrieved.depends == "notify-slack"
+    assert callback_step_retrieved.retryPolicy is not None
     assert callback_step_retrieved.retryPolicy.limit == 2
     assert callback_step_retrieved.mailOnError is True
 

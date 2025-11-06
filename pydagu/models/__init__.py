@@ -1,9 +1,9 @@
 """Pydantic models for Dagu DAG validation"""
 
 from pydagu.models.dag import Dag
+from pydagu.models.base import Precondition
 from pydagu.models.step import (
     Step,
-    Precondition,
     RetryPolicy,
     ContinueOn,
     ParallelConfig,

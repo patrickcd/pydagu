@@ -1,6 +1,6 @@
 """Fluent builder API for creating Dagu DAGs programmatically"""
 
-from typing import Any
+from typing import Any, Literal
 import yaml
 
 from .models.base import Precondition
@@ -38,8 +38,8 @@ class DagBuilder:
         name: str,
         description: str = "",
         schedule: str | None = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize a new DAG builder
 
         Args:
@@ -124,7 +124,7 @@ class DagBuilder:
     def container(
         self,
         image: str,
-        pull_policy: str | None = None,
+        pull_policy: Literal["always", "missing", "never"] | None = None,
         env: list[str] | None = None,
         volumes: list[str] | None = None,
     ) -> "DagBuilder":
@@ -144,7 +144,7 @@ class DagBuilder:
         port: int = 22,
         key: str | None = None,
         password: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "DagBuilder":
         """Set SSH configuration for the DAG"""
         self._dag_config["ssh"] = SSHConfig(
@@ -176,15 +176,17 @@ class DagBuilder:
     def mail_on_failure(self, enabled: bool = True) -> "DagBuilder":
         """Enable/disable email notifications on failure"""
         if "mailOn" not in self._dag_config:
-            self._dag_config["mailOn"] = MailOn()
-        self._dag_config["mailOn"].failure = enabled
+            self._dag_config["mailOn"] = MailOn(failure=enabled, success=None)
+        else:
+            self._dag_config["mailOn"].failure = enabled
         return self
 
     def mail_on_success(self, enabled: bool = True) -> "DagBuilder":
         """Enable/disable email notifications on success"""
         if "mailOn" not in self._dag_config:
-            self._dag_config["mailOn"] = MailOn()
-        self._dag_config["mailOn"].success = enabled
+            self._dag_config["mailOn"] = MailOn(failure=None, success=enabled)
+        else:
+            self._dag_config["mailOn"].success = enabled
         return self
 
     def add_precondition(self, condition: str, expected: str) -> "DagBuilder":
@@ -201,7 +203,9 @@ class DagBuilder:
     ) -> "DagBuilder":
         """Set success handler"""
         if "handlerOn" not in self._dag_config:
-            self._dag_config["handlerOn"] = HandlerOn()
+            self._dag_config["handlerOn"] = HandlerOn(
+                success=None, failure=None, cancel=None, exit=None
+            )
         self._dag_config["handlerOn"].success = HandlerConfig(
             command=command, executor=executor
         )
@@ -212,7 +216,9 @@ class DagBuilder:
     ) -> "DagBuilder":
         """Set failure handler"""
         if "handlerOn" not in self._dag_config:
-            self._dag_config["handlerOn"] = HandlerOn()
+            self._dag_config["handlerOn"] = HandlerOn(
+                success=None, failure=None, cancel=None, exit=None
+            )
         self._dag_config["handlerOn"].failure = HandlerConfig(
             command=command, executor=executor
         )
@@ -223,7 +229,9 @@ class DagBuilder:
     ) -> "DagBuilder":
         """Set exit handler"""
         if "handlerOn" not in self._dag_config:
-            self._dag_config["handlerOn"] = HandlerOn()
+            self._dag_config["handlerOn"] = HandlerOn(
+                success=None, failure=None, cancel=None, exit=None
+            )
         self._dag_config["handlerOn"].exit = HandlerConfig(
             command=command, executor=executor
         )
@@ -234,7 +242,7 @@ class DagBuilder:
         name: str | None = None,
         command: str | None = None,
         script: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "DagBuilder":
         """Add a step to the DAG
 
@@ -255,7 +263,7 @@ class DagBuilder:
         self._dag_config["steps"].append(command_or_script)
         return self
 
-    def add_step_models(self, *steps: tuple[Step]) -> "DagBuilder":
+    def add_step_models(self, *steps: Step) -> "DagBuilder":
         """Add one or more pre-built Step object to the DAG"""
         for step in steps:
             self._dag_config["steps"].append(step)
@@ -313,7 +321,7 @@ class StepBuilder:
         Args:
             name: Step name
         """
-        self._step_config = {"name": name}
+        self._step_config: dict[str, Any] = {"name": name}
 
     def command(self, cmd: str) -> "StepBuilder":
         """Set the command to execute"""
@@ -371,8 +379,9 @@ class StepBuilder:
     def continue_on_failure(self, enabled: bool = True) -> "StepBuilder":
         """Continue execution even if this step fails"""
         if "continueOn" not in self._step_config:
-            self._step_config["continueOn"] = ContinueOn()
-        self._step_config["continueOn"].failure = enabled
+            self._step_config["continueOn"] = ContinueOn(failure=enabled, skipped=None)
+        else:
+            self._step_config["continueOn"].failure = enabled
         return self
 
     def parallel(
@@ -395,7 +404,7 @@ class StepBuilder:
         pull: bool | None = None,
         env: list[str] | dict[str, str] | None = None,
         volumes: list[str] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "StepBuilder":
         """Set Docker executor for this step"""
         self._step_config["executor"] = ExecutorConfig(
@@ -412,7 +421,7 @@ class StepBuilder:
         query: dict[str, str] | None = None,
         body: str | dict[str, Any] | None = None,
         timeout: int | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "StepBuilder":
         """Set HTTP executor for this step"""
         self._step_config["executor"] = ExecutorConfig(
@@ -430,7 +439,7 @@ class StepBuilder:
         port: int = 22,
         key: str | None = None,
         password: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "StepBuilder":
         """Set SSH executor for this step"""
         self._step_config["executor"] = ExecutorConfig(
@@ -446,7 +455,7 @@ class StepBuilder:
         to: str | list[str],
         subject: str | None = None,
         body: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "StepBuilder":
         """Set mail executor for this step"""
         self._step_config["executor"] = ExecutorConfig(

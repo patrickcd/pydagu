@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from .types import EmptyStrToNone, DaguBase
+from .types import EmptyStrToNone
 
 
 class DagRunId(BaseModel):
@@ -22,7 +22,7 @@ class DagResponseMessage(BaseModel):
     message: str
 
 
-class DagSubRun(DaguBase):
+class DagSubRun(BaseModel):
     """
     Model for DAG run sub-run response from the Dagu HTTP API.
 
@@ -34,7 +34,7 @@ class DagSubRun(DaguBase):
     statusLabel: str
 
 
-class DagNodeStep(DaguBase):
+class DagNodeStep(BaseModel):
     """
     Model for DAG run node step response from the Dagu HTTP API.
 
@@ -46,7 +46,7 @@ class DagNodeStep(DaguBase):
     params: str | None = None
 
 
-class DagRunNode(DaguBase):
+class DagRunNode(BaseModel):
     """
     Model for DAG run node response from the Dagu HTTP API.
 
@@ -63,7 +63,7 @@ class DagRunNode(DaguBase):
     subRuns: list[DagSubRun] | None = None
 
 
-class DagRunResult(DaguBase):
+class DagRunResult(BaseModel):
     """
     Model for DAG run result response from the Dagu HTTP API.
 

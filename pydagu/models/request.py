@@ -2,10 +2,10 @@
 Pydantic models for requests to the Dagu HTTP API.
 """
 
-from .types import DaguBase
+from pydantic import BaseModel
 
 
-class StartDagRun(DaguBase):
+class StartDagRun(BaseModel):
     """Model for starting a DAG run via the Dagu HTTP API."""
 
     params: str | None = None
