@@ -3,7 +3,7 @@
 import re
 from typing import Self
 
-from pydantic import Field, field_validator, model_validator, BaseModel
+from pydantic import Field, field_validator, model_validator, BaseModel, ConfigDict
 
 from .base import Precondition
 from .step import Step
@@ -14,6 +14,8 @@ from .infrastructure import ContainerConfig, SSHConfig
 
 class Dag(BaseModel):
     """Dagu DAG (Directed Acyclic Graph) definition"""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str = Field(
         description="DAG name",

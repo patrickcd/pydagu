@@ -144,9 +144,8 @@ pytest tests/ --cov=pydagu --cov-report=html
 
 ## Documentation
 
-- [Dagu Documentation](https://dagu.readthedocs.io/)
-- [Webhook Integration Guide](examples/README.md)
-- [API Reference](https://github.com/yourusername/pydagu/wiki)
+- [PyDagu Reference](https://github.com/patrickcd/pydagu/blob/main/docs/examples.py)
+- [Dagu Documentation](https://docs.dagu.cloud/)
 
 ## Contributing
 
