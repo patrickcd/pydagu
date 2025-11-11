@@ -46,6 +46,24 @@ class DaguHttpClient:
         response.raise_for_status()
         return None
 
+    def update_dag(self, dag: Dag) -> None | DagResponseMessage:
+        """Update a DAG via the Dagu HTTP API (PUT)"""
+        url = f"{self.url_root}/dags/{self.dag_name}/spec"
+
+        dagu_dict = dag.model_dump(exclude_unset=True, exclude_none=True)
+        dag_yaml = dump(dagu_dict, Dumper=Dumper)
+
+        body_json = {
+            "spec": dag_yaml,
+        }
+        response = httpx.put(url, json=body_json)
+
+        if response.status_code in (400, 409):
+            return DagResponseMessage.model_validate(response.json())
+
+        response.raise_for_status()
+        return None
+
     def delete_dag(self) -> None:
         """Delete a DAG from the Dagu HTTP API by its name."""
         url = f"{self.url_root}/dags/{self.dag_name}"

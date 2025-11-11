@@ -135,6 +135,58 @@ def test_post_and_run_dag(dagu_client: DaguHttpClient):
     assert dag_run_result.statusLabel == "succeeded"
 
 
+def test_update_dag(dagu_client: DaguHttpClient):
+    """Test updating an existing DAG using the update_dag method"""
+    # First, create a DAG
+    original_dag = (
+        DagBuilder(dagu_client.dag_name)
+        .description("Original DAG description")
+        .add_step("step1", "echo 'Original step 1'")
+        .add_step("step2", "echo 'Original step 2'")
+        .build()
+    )
+
+    create_response = dagu_client.post_dag(original_dag)
+    assert create_response is None
+
+    # Verify the original DAG was created
+    retrieved_dag = dagu_client.get_dag_spec()
+    assert retrieved_dag.name == original_dag.name
+    assert retrieved_dag.description == "Original DAG description"
+    assert len(retrieved_dag.steps) == 2
+
+    # Now update the DAG with new steps and description
+    updated_dag = (
+        DagBuilder(dagu_client.dag_name)
+        .description("Updated DAG description")
+        .add_step("step1", "echo 'Updated step 1'")
+        .add_step("step2", "echo 'Updated step 2'")
+        .add_step("step3", "echo 'New step 3'")
+        .build()
+    )
+
+    update_response = dagu_client.update_dag(updated_dag)
+    assert update_response is None
+
+    # Verify the DAG was updated
+    retrieved_updated_dag = dagu_client.get_dag_spec()
+    assert retrieved_updated_dag.name == updated_dag.name
+    assert retrieved_updated_dag.description == "Updated DAG description"
+    assert len(retrieved_updated_dag.steps) == 3
+
+    # Run the updated DAG to verify it works
+    start_request = StartDagRun(dagName=dagu_client.dag_name)
+    dag_run_id = dagu_client.start_dag_run(start_request)
+    assert isinstance(dag_run_id, DagRunId)
+    assert dag_run_id.dagRunId is not None
+
+    # Wait for DAG run to complete
+    time.sleep(0.5)
+    dag_run_result = dagu_client.get_dag_run_status(dag_run_id.dagRunId)
+    assert dag_run_result.statusLabel == "succeeded"
+    assert len(dag_run_result.nodes) == 3
+
+
 def test_webhook_dag(dagu_client: DaguHttpClient, http_server: tuple[HTTPServer, int]):
     """
     Test posting a DAG for executing a webhook. It required parameters for the url, headers, and payload.
