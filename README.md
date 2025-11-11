@@ -144,7 +144,7 @@ pytest tests/ --cov=pydagu --cov-report=html
 
 ## Documentation
 
-- [PyDagu Reference](https://github.com/patrickcd/pydagu/blob/main/docs/examples.py)
+- [PyDagu Reference](https://github.com/patrickcd/pydagu/blob/main/docs/reference.md)
 - [Dagu Documentation](https://docs.dagu.cloud/)
 
 ## Contributing
