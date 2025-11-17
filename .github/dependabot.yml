@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # Enable version updates for pip (Python dependencies)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      # Group all dev dependencies together
+      dev-dependencies:
+        patterns:
+          - "ruff"
+          - "pytest*"
+          - "pre-commit"
+          - "hypothesis*"
+          - "schemathesis"
+          - "import-linter"
+          - "mypy"
+          - "types-*"
+      # Group all production dependencies together
+      production-dependencies:
+        patterns:
+          - "httpx"
+          - "pydantic"
+          - "pyyaml"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
