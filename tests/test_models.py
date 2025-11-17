@@ -52,12 +52,23 @@ def test_dag_schedule_validation_valid(schedule):
     [
         "invalid cron",
         "* * * *",  # Too few fields
+        "? ? ? ? ?",  # Invalid chars
+        "2 2 2 2 2 2 2 2 2",  # Too many fields
+        "a/b/c * * * *",  # Multiple slashes in field
+        "a-b/c * * * *",  # Malformed range/step combo
+        "*/* * * * *",  # Invalid step format
+        "a/b/c/d * * * *",  # Too many slashes in field
     ],
 )
 def test_dag_schedule_validation_invalid(schedule):
     """Test that invalid cron expressions are rejected"""
     with pytest.raises(ValidationError):
         Dag(name="test", schedule=schedule, steps=["echo test"])
+
+
+def test_none_cron_dag():
+    dag = Dag(name="test", schedule=None, steps=["echo 1"])
+    assert dag.schedule is None
 
 
 def test_dag_with_tags():
@@ -171,6 +182,18 @@ def test_step_with_executor():
         ),
     )
     assert step.executor.type == "docker"
+
+
+def test_dag_duplicate_step_names():
+    with pytest.raises(ValidationError) as ve:
+        Dag(
+            name="TheDupe",
+            steps=[
+                Step(name="A", command="ls"),
+                Step(name="A", command="ps"),
+            ],
+        )
+    assert "Duplicate name found" in str(ve)
 
 
 # Executor Model Tests
