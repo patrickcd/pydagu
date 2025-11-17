@@ -12,6 +12,11 @@ from .notifications import MailOn, SMTPConfig
 from .infrastructure import ContainerConfig, SSHConfig
 
 
+# Pattern that matches: *, single values, ranges, steps, lists, and combinations
+# Examples: *, 5, 1-5, */5, 1-10/2, 1,5,10, MON-FRI
+CRON_PATTERN = re.compile(r"^(\*|[\w-]+)(\/\d+)?$|^[\w-]+(,[\w-]+)+$")
+
+
 class Dag(BaseModel):
     """Dagu DAG (Directed Acyclic Graph) definition"""
 
@@ -114,45 +119,15 @@ class Dag(BaseModel):
     @field_validator("schedule")
     @classmethod
     def validate_cron_expression(cls, v: str | None) -> str | None:
-        """Validate cron expression format (5 or 6 fields) - permissive sanity check"""
+        """Validate cron field structure - ensures proper syntax for each field"""
         if v is None:
             return v
 
-        # Split the cron expression into fields
+        # Field pattern already enforces 5 or 6 fields
+        # Validate each field has proper cron syntax structure
         fields = v.split()
-
-        # Must have 5 or 6 fields
-        if len(fields) not in (5, 6):
-            raise ValueError(
-                f"Invalid cron expression: '{v}'. "
-                "Expected format: 'minute hour day month weekday [year]' "
-                "(e.g., '0 2 * * *' for daily at 2 AM, or '*/5 * * * *' for every 5 minutes)"
-            )
-
-        # Permissive patterns - just check for reasonable structure
-        # Allows: *, numbers, ranges, steps, lists, and named values
-        # This is a sanity check, not exhaustive validation
-
-        # Basic pattern: anything with numbers, *, /, -, , and letters (for named values)
-        basic_pattern = re.compile(r"^[\w*,/-]+$")
-
-        # More specific patterns for better validation
-        # Pattern that matches: *, single values, ranges, steps, lists, and combinations
-        # Examples: *, 5, 1-5, */5, 1-10/2, 1,5,10, MON-FRI
-        field_pattern = re.compile(r"^(\*|[\w-]+)(\/\d+)?$|^[\w-]+(,[\w-]+)+$")
-
-        # Validate each field with permissive pattern
         for i, field in enumerate(fields):
-            # First check basic structure
-            if not basic_pattern.match(field):
-                field_names = ["minute", "hour", "day", "month", "weekday", "year"]
-                raise ValueError(
-                    f"Invalid cron expression: '{v}'. "
-                    f"Invalid {field_names[i]} field: '{field}'. "
-                    "Expected format: 'minute hour day month weekday [year]'"
-                )
-            # Then check field-specific pattern
-            if not field_pattern.match(field):
+            if not CRON_PATTERN.match(field):
                 field_names = ["minute", "hour", "day", "month", "weekday", "year"]
                 raise ValueError(
                     f"Invalid cron expression: '{v}'. "
