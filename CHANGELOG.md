@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Removed redundant Dag schedule validation code
+
+## [0.2.2] - 2025-11-17
+
+### Fixed
+- Github link fixed in documentation
+
+## [0.2.1] - 2025-11-17
+
+### Fixed
+- Documentation fixes
+
+## [0.2.0] - 2025-11-17
+
+### Added
+- PUT method to update a DAG via HTTP API
+
+## [0.1.1] - 2025-11-17
+
+### Added
+- py.typed marker module for PEP 561 compliance
+
 ## [0.1.0] - 2025-01-08
 
 ### Added

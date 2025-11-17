@@ -1,7 +1,7 @@
 # pydagu
 
 [![PyPI version](https://badge.fury.io/py/pydagu.svg)](https://badge.fury.io/py/pydagu)
-[![Tests](https://github.com/yourusername/pydagu/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/pydagu/actions/workflows/test.yml)
+[![Tests](https://github.com/patrickcd/pydagu/actions/workflows/test.yml/badge.svg)](https://github.com/patrickcd/pydagu/actions/workflows/test.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydagu.svg)](https://pypi.org/project/pydagu/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

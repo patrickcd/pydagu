@@ -1,6 +1,6 @@
 [project]
 name = "pydagu"
-version = "0.2.2"
+version = "0.2.3"
 description = "Python client library for Dagu - A cron alternative with a Web UI"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,10 +31,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/pydagu"
-Documentation = "https://github.com/yourusername/pydagu#readme"
-Repository = "https://github.com/yourusername/pydagu"
-Issues = "https://github.com/yourusername/pydagu/issues"
+Homepage = "https://github.com/patrickcd/pydagu"
+Documentation = "https://github.com/patrickcd/pydagu#readme"
+Repository = "https://github.com/patrickcd/pydagu"
+Issues = "https://github.com/patrickcd/pydagu/issues"
 
 [dependency-groups]
 dev = [
