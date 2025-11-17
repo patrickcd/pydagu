@@ -59,6 +59,10 @@ jobs:
         # Verify pytest is available
         pytest --version
 
+    - name: Run mypy strict type checking
+      run: |
+        mypy --strict pydagu/
+
     - name: Run tests
       run: |
         pytest tests/ -v --cov=pydagu --cov-report=xml --cov-report=term
