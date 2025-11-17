@@ -1,0 +1,68 @@
+name: Update uv.lock for Dependabot PRs
+
+on:
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+
+jobs:
+  update-lockfile:
+    # Only run on Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout PR branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Update uv.lock
+      run: |
+        uv lock --upgrade-package $(echo "${{ github.event.pull_request.title }}" | grep -oP '(?<=Bump )\S+')
+      continue-on-error: true
+
+    - name: Fallback - full lock update
+      if: failure()
+      run: |
+        uv lock
+
+    - name: Check for changes
+      id: git-check
+      run: |
+        git diff --exit-code uv.lock || echo "changed=true" >> $GITHUB_OUTPUT
+
+    - name: Commit and push if changed
+      if: steps.git-check.outputs.changed == 'true'
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add uv.lock
+        git commit -m "chore: update uv.lock"
+        git push
+
+    - name: Comment on PR
+      if: steps.git-check.outputs.changed == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🔒 Automatically updated `uv.lock` to match the dependency changes.'
+          })
